@@ -2,8 +2,8 @@ CC=g++
 CFLAGS= -std=c++14 -Os -Wall
 LFLAGS= -lX11
 
-SRC= redfox.cpp
-OBJECT= redfox.o
+SRC= redfox.cpp main.cpp
+OBJECT= redfox.o main.o
 
 all: _bar_
 	${CC} ${OBJECT} -o redfox ${LFLAGS}
