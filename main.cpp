@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 // Own
-#include "redfox.hpp"
+#include "inc/redfox.hpp"
 
 
 int main()
