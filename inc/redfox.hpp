@@ -12,9 +12,12 @@
 class Redfox {
 	int screen;
 	const std::vector<std::string> path_list = {"/sys/class/power_supply/BAT0/"
-												, "/sys/class/power_supply/BAT1/"
-												, "/sys/class/power_supply/BAT2/"
-												, "/sys/class/power_supply/BAT3/"};
+													  , "/sys/class/power_supply/BAT1/"
+													  , "/sys/class/power_supply/BAT2/"
+													  , "/sys/class/power_supply/BAT3/"};
+
+	const std::vector<std::string> full_list = {"energy_full", "charge_full", "current_full"};
+	const std::vector<std::string> now_list = {"energy_now", "charge_now", "current_now"};
 
 	std::string battery_path;
 
