@@ -1,30 +1,29 @@
 // General 
-#include <iostream>
 #include <unistd.h>
+#include <fstream>
 
 // Date
 #include <ctime>
+#include <sys/stat.h>
 
 // Own
 #include "../inc/redfox.hpp"
 
 
-std::string Redfox::date()
+bool Redfox::date(std::string &date)
 {
 	time_t time;
 	struct tm *time_inf;
 
 	std::time(&time);
 	time_inf = std::localtime(&time);
-	std::string tmp(asctime(time_inf));
+	date = (asctime(time_inf));
 
-	return tmp.substr(0, tmp.size()-1);
+	return true;
 }
 
-std::string Redfox::wifi()
+bool Redfox::wifi(std::string &ip)
 {	
-	std::string ip("Wifi offline...");;
-
 	getifaddrs(&if_addr);
 
 	for(ifa = if_addr; ifa != nullptr; ifa = ifa->ifa_next)
@@ -40,5 +39,61 @@ std::string Redfox::wifi()
 	}
 	if(if_addr) freeifaddrs(if_addr);
 	
-	return ip;
+	return true;
+}
+
+bool Redfox::battery(std::string &state, double &load)
+{
+	std::ifstream state_f(battery_path + "status");
+
+	if(state_f.is_open())
+		state_f >> state;
+	else
+		state = "Unkown";
+
+	state_f.close();
+	
+	std::ifstream e_full_f(battery_path + "energy_full");
+	std::ifstream e_now_f(battery_path + "energy_now");
+
+	if(e_full_f.is_open() && e_now_f.is_open())
+	{
+		double f;
+		double n;
+
+		e_full_f >> f;
+		e_now_f >> n;
+		
+		load = (n / f) * 100;
+	} else
+		load = -1;
+
+	e_full_f.close();
+	e_now_f.close();
+
+	return true;
+	
+}
+
+bool Redfox::collect_info(std::string &path)
+{
+	for(auto i = path_list.begin(); i != path_list.end(); ++i)
+	{
+		if(check_dir(*i))
+		{
+			path = *i;
+			return true;
+		}
+			
+	}
+	return false;
+}
+
+bool Redfox::check_dir(const std::string dir)
+{
+	struct stat directory;
+
+	stat(dir.c_str(), &directory);
+
+	return S_ISDIR(directory.st_mode);
 }
