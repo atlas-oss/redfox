@@ -52,24 +52,34 @@ bool Redfox::battery(std::string &state, double &load)
 		state = "Unkown";
 
 	state_f.close();
-	
-	std::ifstream e_full_f(battery_path + "energy_full");
-	std::ifstream e_now_f(battery_path + "energy_now");
 
-	if(e_full_f.is_open() && e_now_f.is_open())
+	std::ifstream e_full_f;
+	std::ifstream e_now_f;
+	double f = 0;
+	double n = 0;
+
+	for(auto i = now_list.begin(); i != now_list.end(); ++i)
 	{
-		double f;
-		double n;
+		e_now_f.open(battery_path + *i);
+		if(e_now_f.is_open())
+		{
+			e_now_f >> n;
+			e_now_f.close();
+			break;
+		}
+	}
+	for(auto i = full_list.begin(); i != full_list.end(); ++i)
+	{
+		e_full_f.open(battery_path + *i);
+		if(e_full_f.is_open())
+		{
+			e_full_f >> f;
+			e_full_f.close();
+			break;
+		}
+	}
 
-		e_full_f >> f;
-		e_now_f >> n;
-		
-		load = (n / f) * 100;
-	} else
-		load = -1;
-
-	e_full_f.close();
-	e_now_f.close();
+	load = (n / f) * 100;
 
 	return true;
 	
