@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS= -std=c++14 -Os -Wall
+CFLAGS= -std=c++14 -O2 -Wall -fomit-frame-pointer -funroll-loops
 LDFLAGS= -lX11
 
 SRC= src/redfox.cpp main.cpp
