@@ -1,17 +1,25 @@
-CC=g++
-CFLAGS= -std=c++14 -O2 -Wall -fomit-frame-pointer -funroll-loops
-LDFLAGS= -lX11
+CC=clang++
+
+WARN= -Wall -Wextra -Wno-unused-parameter -Wno-deprecated-declarations -Wformat-security -Wformat -Werror=format-security -Wstack-protector
+SEC= -march=native -fstack-protector-all --param ssp-buffer-size=4 -fpie -ftrapv -D_FORTIFY_SOURCE=2
+
+
+CFLAGS= ${WARN} ${SEC} -std=c++14 -O2 -fomit-frame-pointer -funroll-loops
+LDFLAGS= -lX11 -Wl,-z,relro,-z,now -pie
 
 SRC= src/redfox.cpp main.cpp
 OBJECT= redfox.o main.o
 
 all: _bar_
-	${CC} ${OBJECT} -o redfox ${LDFLAGS}
+	@echo "Linking..."
+	@${CC} ${OBJECT} -o redfox ${LDFLAGS}
 
 _bar_:
-	${CC} -c ${CFLAGS} ${SRC}
+	@echo "Compiling..."
+	@${CC} -c ${CFLAGS} ${SRC}
 
 .PHONY: clean
 
 clean:
-	rm -rf *.o *~ redfox
+	@echo "Cleaning..."
+	@rm -rf *.o *~ redfox
