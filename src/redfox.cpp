@@ -20,8 +20,9 @@
 
 // Own
 #include "../inc/redfox.hpp"
+#include "../inc/TMP.hpp"
 
-const bool Redfox::date(std::string &date) const
+bool Redfox::date(std::string &date) const
 {
 	time_t time;
 	struct tm *time_inf;
@@ -55,7 +56,7 @@ bool Redfox::wifi(std::string &ip)
 	return true;
 }
 
-const bool Redfox::battery(std::string &state, double &load) const
+bool Redfox::battery(std::string &state, double &load) const
 {
 	std::ifstream state_f(battery_path + "status");
 
@@ -93,7 +94,7 @@ const bool Redfox::battery(std::string &state, double &load) const
 	return true;
 }
 
-const bool Redfox::collect_info(std::string &path) const
+bool Redfox::collect_info(std::string &path) const
 {
 	for (auto i = path_list.begin(); i != path_list.end(); ++i) {
 		if (check_dir(*i)) {
@@ -104,7 +105,7 @@ const bool Redfox::collect_info(std::string &path) const
 	return false;
 }
 
-const bool Redfox::check_dir(const std::string dir) const
+bool Redfox::check_dir(const std::string dir) const
 {
 	struct stat directory;
 
@@ -113,7 +114,7 @@ const bool Redfox::check_dir(const std::string dir) const
 	return S_ISDIR(directory.st_mode);
 }
 
-const bool Redfox::volume(long &vol) const
+bool Redfox::volume(long &vol) const
 {
 	long minv, maxv;
 	snd_mixer_t *handle;
@@ -165,7 +166,7 @@ const bool Redfox::volume(long &vol) const
 	return true;
 }
 
-const bool Redfox::load_cpu_mem(double &cpu, long &mem) const
+bool Redfox::load_cpu_mem(double &cpu, long &mem) const
 {
   struct sysinfo cpu_info;
   double shift=(double)(1<<SI_LOAD_SHIFT);

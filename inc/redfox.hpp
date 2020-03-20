@@ -12,15 +12,15 @@
 class Redfox
 {
 	int screen;
-	const std::vector<std::string> path_list = {
+	std::vector<std::string> path_list = {
 		"/sys/class/power_supply/BAT0/",
 		"/sys/class/power_supply/BAT1/",
 		"/sys/class/power_supply/BAT2/",
 		"/sys/class/power_supply/BAT3/"};
 
-	const std::vector<std::string> full_list = {
+	std::vector<std::string> full_list = {
 		"energy_full", "charge_full", "current_full"};
-	const std::vector<std::string> now_list = {"energy_now", "charge_now",
+	std::vector<std::string> now_list = {"energy_now", "charge_now",
 						   "current_now"};
 
 	std::string battery_path;
@@ -29,8 +29,8 @@ class Redfox
 	ifaddrs *ifa = nullptr;
 	in_addr *tmp_ptr = nullptr;
 
-	const bool check_dir(const std::string dir) const;
-	const bool collect_info(std::string &path) const;
+	bool check_dir(const std::string dir) const;
+	bool collect_info(std::string &path) const;
 
       public:
 	Display *dpy;
@@ -48,9 +48,9 @@ class Redfox
 		collect_info(battery_path);
 	}
 
-	const bool date(std::string &date) const;
+  bool date(std::string &date) const;
 	bool wifi(std::string &ip);
-	const bool battery(std::string &state, double &load) const;
-	const bool load_cpu_mem(double &cpu, long &mem) const;
-	const bool volume(long &vol) const;
+	bool battery(std::string &state, double &load) const;
+	bool load_cpu_mem(double &cpu, long &mem) const;
+	bool volume(long &vol) const;
 };

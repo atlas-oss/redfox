@@ -10,7 +10,7 @@ bool bdate = true, bwifi = true, bbattery = true, bcpu_mem = true,
 #define HELP                                                                   \
 	" redfox v0.02\n USAGE: redfox [OPTION]\n -m - No memory and CPU usage\n -w - No IP address\n -b - No battery load\n -v - No volume indicator\n -d - No date\n -h - this message."
 
-const bool parse_args(int argc, char **argv)
+bool parse_args(const int argc, const char **argv)
 {
 	for (size_t i = 0; i < argc; ++i) {
 		switch (argv[i][1]) {
@@ -45,7 +45,7 @@ const bool parse_args(int argc, char **argv)
 }
 
 
-int main(int argc, char **argv)
+int main(const int argc, const char **argv)
 {
 	parse_args(argc, argv);
 	Redfox red;
