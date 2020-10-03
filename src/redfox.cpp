@@ -6,6 +6,7 @@
 #include <limits>
 #include <algorithm>
 #include <iterator>
+#include <string>
 
 // Network
 #include <ifaddrs.h>
@@ -44,9 +45,15 @@ bool Redfox::wifi(std::string &ip)
 																->sin_addr;
 												char addr_buf[INET_ADDRSTRLEN];
 												inet_ntop(AF_INET, tmp_ptr, addr_buf, INET_ADDRSTRLEN);
+												if(std::string(addr_buf).compare("127.0.0.1") == 0)
+																continue;
+												
 												ip = addr_buf;
 								}
 				}
+				if (ip.empty())
+								ip = "Offline...";
+				
 				if (if_addr)
 								freeifaddrs(if_addr);
 
