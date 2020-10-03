@@ -1,22 +1,23 @@
 // General
 #include <X11/Xlib.h>
+
 #include <iostream>
 #include <stdexcept>
 #include <vector>
 
 // Wifi
-#include <ifaddrs.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 
-class Redfox
-{
+#include <arpa/inet.h>
+#include <ifaddrs.h>
+
+class Redfox {
 	int screen;
 
-	std::vector<std::string> full_list = {
-		"energy_full", "charge_full", "current_full"};
-	std::vector<std::string> now_list = {"energy_now", "charge_now",
-						   "current_now"};
+	std::vector<std::string> full_list = { "energy_full", "charge_full",
+		"current_full" };
+	std::vector<std::string> now_list = { "energy_now", "charge_now",
+		"current_now" };
 
 	ifaddrs *if_addr = nullptr;
 	ifaddrs *ifa = nullptr;
@@ -24,7 +25,7 @@ class Redfox
 
 	bool check_dir(const std::string dir) const;
 
-      public:
+    public:
 	Display *dpy;
 	Window root;
 	std::string output;
@@ -39,7 +40,7 @@ class Redfox
 		root = RootWindow(dpy, screen);
 	}
 
-  bool date(std::string &date) const;
+	bool date(std::string &date) const;
 	bool wifi(std::string &ip);
 	bool battery(std::string &state, int &load) const;
 	bool load_cpu_mem(double &cpu, long &mem) const;

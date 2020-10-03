@@ -7,10 +7,11 @@
 bool bdate = true, bwifi = true, bbattery = true, bcpu_mem = true,
      bvolume = true;
 
-#define HELP                                                                   \
+#define HELP \
 	" redfox v0.02\n USAGE: redfox [OPTION]\n -m - No memory and CPU usage\n -w - No IP address\n -b - No battery load\n -v - No volume indicator\n -d - No date\n -h - this message."
 
-bool parse_args(const int argc, const char **argv)
+bool
+parse_args(const int argc, const char **argv)
 {
 	for (size_t i = 0; i < argc; ++i) {
 		switch (argv[i][1]) {
@@ -44,8 +45,8 @@ bool parse_args(const int argc, const char **argv)
 	return true;
 }
 
-
-int main(const int argc, const char **argv)
+int
+main(const int argc, const char **argv)
 {
 	parse_args(argc, argv);
 	Redfox red;
@@ -74,15 +75,14 @@ int main(const int argc, const char **argv)
 
 		if (bbattery) {
 			red.battery(state, load);
-			red.output.append("  >  " + state + " "
-					  + std::to_string(load).substr(0, 5)
-					  + "%");
+			red.output.append("  >  " + state + " " +
+			    std::to_string(load).substr(0, 5) + "%");
 		}
 
 		if (bdate) {
 			red.date(date);
 			red.output.append(
-				"  >  " + date.substr(0, (date.length()) - 1));
+			    "  >  " + date.substr(0, (date.length()) - 1));
 		}
 
 		XStoreName(red.dpy, red.root, red.output.c_str());
