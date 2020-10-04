@@ -29,6 +29,7 @@ class Redfox {
 	Display *dpy;
 	Window root;
 	std::string output;
+	int i_bat = 0;
 
 	Redfox()
 	{
@@ -42,7 +43,7 @@ class Redfox {
 
 	bool date(std::string &date) const;
 	bool wifi(std::string &ip);
-	bool battery(std::string &state, int &load) const;
+	bool battery(std::string &state, int &load);
 	bool load_cpu_mem(double &cpu, long &mem) const;
 	bool volume(long &vol) const;
 };

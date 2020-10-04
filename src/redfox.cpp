@@ -77,8 +77,9 @@ Redfox::date(std::string &date) const
 	return true;
 }
 
+
 bool
-Redfox::battery(std::string &state, int &load) const
+Redfox::battery(std::string &state, int &load)
 {
 	int life_, state_;
 	size_t len = 0;
@@ -93,9 +94,38 @@ Redfox::battery(std::string &state, int &load) const
 	len = sizeof(state_);
 	sysctlbyname("hw.acpi.battery.state", &state_, &len, NULL, 0);
 	switch (state_) {
+	case 0:
+					switch (i_bat) {
+					case 0:
+									state = "Charging.  ";
+									i_bat++;
+									break;
+					case 1:
+									state = "Charging.. ";
+									i_bat++;
+									break;
+					case 2:
+									state = "Charging...";
+									i_bat = 0;
+									break;
+					}
+					break;
 	case 1:
-		state = "Discharging...";
-		break;
+					switch (i_bat) {
+					case 0:
+									state = "Discharging.  ";
+									i_bat++;
+									break;
+					case 1:
+									state = "Discharging.. ";
+									i_bat++;
+									break;
+					case 2:
+									state = "Discharging...";
+									i_bat = 0;
+									break;
+					}
+					break;
 	}
 
 	return true;
