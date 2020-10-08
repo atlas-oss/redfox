@@ -31,9 +31,11 @@
 
 // System API
 #include <sys/sysctl.h>
+#include <dev/acpica/acpiio.h>
 
 // Own
 #include "../inc/redfox.hpp"
+
 
 bool
 Redfox::wifi(std::string &ip)
@@ -94,7 +96,7 @@ Redfox::battery(std::string &state, int &load)
 	len = sizeof(state_);
 	sysctlbyname("hw.acpi.battery.state", &state_, &len, NULL, 0);
 	switch (state_) {
-	case 0:
+	case ACPI_BATT_STAT_CHARGING:
 					switch (i_bat) {
 					case 0:
 									state = "Charging.  ";
@@ -110,7 +112,7 @@ Redfox::battery(std::string &state, int &load)
 									break;
 					}
 					break;
-	case 1:
+	case ACPI_BATT_STAT_DISCHARG:
 					switch (i_bat) {
 					case 0:
 									state = "Discharging.  ";
