@@ -31,11 +31,11 @@
 
 // System API
 #include <sys/sysctl.h>
+
 #include <dev/acpica/acpiio.h>
 
 // Own
 #include "../inc/redfox.hpp"
-
 
 bool
 Redfox::wifi(std::string &ip)
@@ -79,7 +79,6 @@ Redfox::date(std::string &date) const
 	return true;
 }
 
-
 bool
 Redfox::battery(std::string &state, int &load)
 {
@@ -97,37 +96,37 @@ Redfox::battery(std::string &state, int &load)
 	sysctlbyname("hw.acpi.battery.state", &state_, &len, NULL, 0);
 	switch (state_) {
 	case ACPI_BATT_STAT_CHARGING:
-					switch (i_bat) {
-					case 0:
-									state = "Charging.  ";
-									i_bat++;
-									break;
-					case 1:
-									state = "Charging.. ";
-									i_bat++;
-									break;
-					case 2:
-									state = "Charging...";
-									i_bat = 0;
-									break;
-					}
-					break;
+		switch (i_bat) {
+		case 0:
+			state = "Charging.  ";
+			i_bat++;
+			break;
+		case 1:
+			state = "Charging.. ";
+			i_bat++;
+			break;
+		case 2:
+			state = "Charging...";
+			i_bat = 0;
+			break;
+		}
+		break;
 	case ACPI_BATT_STAT_DISCHARG:
-					switch (i_bat) {
-					case 0:
-									state = "Discharging.  ";
-									i_bat++;
-									break;
-					case 1:
-									state = "Discharging.. ";
-									i_bat++;
-									break;
-					case 2:
-									state = "Discharging...";
-									i_bat = 0;
-									break;
-					}
-					break;
+		switch (i_bat) {
+		case 0:
+			state = "Discharging.  ";
+			i_bat++;
+			break;
+		case 1:
+			state = "Discharging.. ";
+			i_bat++;
+			break;
+		case 2:
+			state = "Discharging...";
+			i_bat = 0;
+			break;
+		}
+		break;
 	case 0:
 		state = "Full";
 		break;
