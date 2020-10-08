@@ -128,6 +128,11 @@ Redfox::battery(std::string &state, int &load)
 									break;
 					}
 					break;
+	case 0:
+		state = "Full";
+		break;
+	default:
+		state = "Unkown?";
 	}
 
 	return true;
