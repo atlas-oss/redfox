@@ -32,8 +32,6 @@
 // System API
 #include <sys/sysctl.h>
 
-#include <dev/acpica/acpiio.h>
-
 // Own
 #include "../inc/redfox.hpp"
 
@@ -82,59 +80,63 @@ Redfox::date(std::string &date) const
 bool
 Redfox::battery(std::string &state, int &load)
 {
-	int life_, state_;
-	size_t len = 0;
-	// Load
-	len = sizeof(life_);
-	sysctlbyname("hw.acpi.battery.life", &life_, &len, NULL, 0);
-	load = life_;
+	// I do not use OpenBSD on a Laptop, so I not tested any code.
+	// If you know how to do this on OpenBSD, you're welcome to contribute.
+	// Below you see the code which works on FreeBSD.
+	
+	// int life_, state_;
+	// size_t len = 0;
+	// // Load
+	// len = sizeof(life_);
+	// sysctlbyname("hw.acpi.battery.life", &life_, &len, NULL, 0);
+	// load = life_;
 
-	len = 0;
+	// len = 0;
 
-	// State
-	len = sizeof(state_);
-	sysctlbyname("hw.acpi.battery.state", &state_, &len, NULL, 0);
-	switch (state_) {
-	case ACPI_BATT_STAT_CHARGING:
-		switch (i_bat) {
-		case 0:
-			state = "Charging.  ";
-			i_bat++;
-			break;
-		case 1:
-			state = "Charging.. ";
-			i_bat++;
-			break;
-		case 2:
-			state = "Charging...";
-			i_bat = 0;
-			break;
-		}
-		break;
-	case ACPI_BATT_STAT_DISCHARG:
-		switch (i_bat) {
-		case 0:
-			state = "Discharging.  ";
-			i_bat++;
-			break;
-		case 1:
-			state = "Discharging.. ";
-			i_bat++;
-			break;
-		case 2:
-			state = "Discharging...";
-			i_bat = 0;
-			break;
-		}
-		break;
-	case 0:
-		state = "Full";
-		break;
-	default:
-		state = "Unkown?";
-	}
+	// // State
+	// len = sizeof(state_);
+	// sysctlbyname("hw.acpi.battery.state", &state_, &len, NULL, 0);
+	// switch (state_) {
+	// case ACPI_BATT_STAT_CHARGING:
+	// 	switch (i_bat) {
+	// 	case 0:
+	// 		state = "Charging.  ";
+	// 		i_bat++;
+	// 		break;
+	// 	case 1:
+	// 		state = "Charging.. ";
+	// 		i_bat++;
+	// 		break;
+	// 	case 2:
+	// 		state = "Charging...";
+	// 		i_bat = 0;
+	// 		break;
+	// 	}
+	// 	break;
+	// case ACPI_BATT_STAT_DISCHARG:
+	// 	switch (i_bat) {
+	// 	case 0:
+	// 		state = "Discharging.  ";
+	// 		i_bat++;
+	// 		break;
+	// 	case 1:
+	// 		state = "Discharging.. ";
+	// 		i_bat++;
+	// 		break;
+	// 	case 2:
+	// 		state = "Discharging...";
+	// 		i_bat = 0;
+	// 		break;
+	// 	}
+	// 	break;
+	// case 0:
+	// 	state = "Full";
+	// 	break;
+	// default:
+	// 	state = "Unkown?";
+	// }
 
-	return true;
+	return false;
 }
 
 bool

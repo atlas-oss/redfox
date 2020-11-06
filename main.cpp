@@ -23,10 +23,10 @@ parse_args(const int argc, const char **argv)
 			bwifi = false;
 			break;
 		}
-		case 'b': {
-			bbattery = false;
-			break;
-		}
+		// case 'b': {
+		// 	bbattery = false;
+		// 	break;
+		// }
 		case 'v': {
 			bvolume = false;
 			break;
@@ -73,11 +73,11 @@ main(const int argc, const char **argv)
 		// 	red.output.append("  >  " + std::to_string(vol) + "%");
 		// }
 
-		if (bbattery) {
-			red.battery(state, load);
-			red.output.append("  >  " + state + " " +
-			    std::to_string(load).substr(0, 5) + "%");
-		}
+		// if (bbattery) {
+		// 	red.battery(state, load);
+		// 	red.output.append("  >  " + state + " " +
+		// 	    std::to_string(load).substr(0, 5) + "%");
+		// }
 
 		if (bdate) {
 			red.date(date);
