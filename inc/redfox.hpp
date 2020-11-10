@@ -30,6 +30,7 @@ class Redfox {
 	Window root;
 	std::string output;
 	int i_bat = 0;
+	int mib_[5] = {};
 
 	Redfox()
 	{
@@ -39,8 +40,11 @@ class Redfox {
 		}
 		screen = DefaultScreen(dpy);
 		root = RootWindow(dpy, screen);
+
+		detect_battery();
 	}
 
+	bool detect_battery();
 	bool date(std::string &date) const;
 	bool wifi(std::string &ip);
 	bool battery(std::string &state, int &load);

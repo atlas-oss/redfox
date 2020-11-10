@@ -23,13 +23,15 @@
 #include <ctime>
 
 // Volume
-//#include <alsa/asoundlib.h>
+#include <sys/audioio.h>
+#include <sys/ioctl.h>
 
 // CPU & MEM usage
 #include <sys/types.h>
-//#include <sys/sysinfo.h>
 
 // System API
+#include <sys/types.h>
+#include <sys/sensors.h>
 #include <sys/sysctl.h>
 
 // Own
@@ -78,73 +80,122 @@ Redfox::date(std::string &date) const
 }
 
 bool
-Redfox::battery(std::string &state, int &load)
+Redfox::detect_battery()
 {
-	// I do not use OpenBSD on a Laptop, so I not tested any code.
-	// If you know how to do this on OpenBSD, you're welcome to contribute.
-	// Below you see the code which works on FreeBSD.
-	
-	// int life_, state_;
-	// size_t len = 0;
-	// // Load
-	// len = sizeof(life_);
-	// sysctlbyname("hw.acpi.battery.life", &life_, &len, NULL, 0);
-	// load = life_;
+	struct sensordev sendev_ = {};
+	size_t len = sizeof(sendev_);
 
-	// len = 0;
+	mib_[0] = CTL_HW;
+	mib_[1] = HW_SENSORS;
 
-	// // State
-	// len = sizeof(state_);
-	// sysctlbyname("hw.acpi.battery.state", &state_, &len, NULL, 0);
-	// switch (state_) {
-	// case ACPI_BATT_STAT_CHARGING:
-	// 	switch (i_bat) {
-	// 	case 0:
-	// 		state = "Charging.  ";
-	// 		i_bat++;
-	// 		break;
-	// 	case 1:
-	// 		state = "Charging.. ";
-	// 		i_bat++;
-	// 		break;
-	// 	case 2:
-	// 		state = "Charging...";
-	// 		i_bat = 0;
-	// 		break;
-	// 	}
-	// 	break;
-	// case ACPI_BATT_STAT_DISCHARG:
-	// 	switch (i_bat) {
-	// 	case 0:
-	// 		state = "Discharging.  ";
-	// 		i_bat++;
-	// 		break;
-	// 	case 1:
-	// 		state = "Discharging.. ";
-	// 		i_bat++;
-	// 		break;
-	// 	case 2:
-	// 		state = "Discharging...";
-	// 		i_bat = 0;
-	// 		break;
-	// 	}
-	// 	break;
-	// case 0:
-	// 	state = "Full";
-	// 	break;
-	// default:
-	// 	state = "Unkown?";
-	// }
+	for (int i = 0; i < 10; ++i) {
+		mib_[2] = i;
+
+		if (sysctl(mib_, 3, &sendev_, &len, NULL, 0) == -1)
+			continue;
+
+		if (std::string(sendev_.xname).find("bat", 0) !=
+		    std::string::npos)
+			return true;
+	}
 
 	return false;
 }
 
 bool
-Redfox::check_dir(const std::string dir) const
+Redfox::battery(std::string &state, int &load)
 {
-	struct stat directory;
+	struct sensor sen_ = {};
+	int state_ = 0;
+	long current_ = 0, full_ = 0;
+	size_t len = 0;
 
-	stat(dir.c_str(), &directory);
+	mib_[3] = SENSOR_WATTHOUR;
+	mib_[4] = 0;
 
-	return S_ISDIR(directory.st_mode);
+	// Full Capacity
+	len = sizeof(sen_);
+	if (sysctl(mib_, 5, &sen_, &len, NULL, 0) == -1)
+		return false;
+
+	full_ = sen_.value;
+	sen_ = {};
+
+	// Current Capacity
+	mib_[4] = 3;
+	if (sysctl(mib_, 5, &sen_, &len, NULL, 0) == -1)
+		return false;
+
+	current_ = sen_.value;
+	sen_ = {};
+
+	// State
+	mib_[3] = SENSOR_INTEGER;
+	mib_[4] = 0;
+	if (sysctl(mib_, 5, &sen_, &len, NULL, 0) == -1)
+		return false;
+
+	state_ = sen_.value;
+	sen_ = {};
+
+	load = (int)(((double)current_ / (double)full_) * 100);
+
+	switch (state_) {
+	case 1:
+		switch (i_bat) {
+		case 0:
+			state = "Discharging.  ";
+			i_bat++;
+			break;
+		case 1:
+			state = "Discharging.. ";
+			i_bat++;
+			break;
+		case 2:
+			state = "Discharging...";
+			i_bat = 0;
+			break;
+		}
+		break;
+	case 2:
+		switch (i_bat) {
+		case 0:
+			state = "Charging.  ";
+			i_bat++;
+			break;
+		case 1:
+			state = "Charging.. ";
+			i_bat++;
+			break;
+		case 2:
+			state = "Charging...";
+			i_bat = 0;
+			break;
+		}
+		break;
+	case 0:
+		state = "Full";
+		break;
+	default:
+		state = "Unkown?";
+	}
+
+	return false;
 }
+
+// bool
+// Redfox::volume(long &vol) const
+// {
+// 	mixer_ctrl_t mixer = {};
+
+// 	FILE *fd = fopen("/dev/audioctl0", "r");
+// 	if (fd)
+// 		if (ioctl(fileno(fd), AUDIO_MIXER_READ, &mixer) < 0)
+// 			return false;
+
+// 	vol = 0;
+// 	std::cout << mixer.un.value.level << std::endl;
+
+// 	fclose(fd);
+// 	return true;
+// }
