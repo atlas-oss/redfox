@@ -12,7 +12,7 @@ OBJECT= redfox.o main.o
 
 all: _bar_
 	@echo "Linking..."
-	@${CC} ${OBJECT} -o redfox ${LDFLAGS}
+	@${CC} ${OBJECT} -g -o redfox ${LDFLAGS}
 
 _bar_:
 	@echo "Compiling..."

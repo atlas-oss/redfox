@@ -56,22 +56,22 @@ main(const int argc, const char **argv)
 	std::string date, ip("Wifi offline..."), state;
 
 	while (true) {
-		// if (bcpu_mem) {
-		// 	red.load_cpu_mem(cpu, mem);
-		// 	red.output.append("  >  L: "
-		// 			  + std::to_string(cpu).substr(0, 4)
-		// 			  + " M: " + std::to_string(mem));
-		// }
+		if (bcpu_mem) {
+			red.load_cpu_mem(cpu, mem);
+			red.output.append(
+			    "  >  L: " + std::to_string(cpu).substr(0, 4) +
+			    " M: " + std::to_string(mem));
+		}
 
 		if (bwifi) {
 			red.wifi(ip);
 			red.output.append("  >  " + ip);
 		}
 
-		// if (bvolume) {
-		// 	red.volume(vol);
-		// 	red.output.append("  >  " + std::to_string(vol) + "%");
-		// }
+		if (bvolume) {
+			red.volume(vol);
+			red.output.append("  >  " + std::to_string(vol) + "%");
+		}
 
 		if (bbattery) {
 			red.battery(state, load);

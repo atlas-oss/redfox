@@ -1,7 +1,9 @@
 // General
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <algorithm>
+#include <array>
 #include <fstream>
 #include <iterator>
 #include <limits>
@@ -23,7 +25,7 @@
 #include <ctime>
 
 // Volume
-//#include <alsa/asoundlib.h>
+#include <sys/soundcard.h>
 
 // CPU & MEM usage
 #include <sys/types.h>
@@ -138,11 +140,79 @@ Redfox::battery(std::string &state, int &load)
 }
 
 bool
-Redfox::check_dir(const std::string dir) const
+Redfox::volume(long &vol) const
 {
-	struct stat directory;
+	int res = -1;
 
-	stat(dir.c_str(), &directory);
+	if (ioctl(mixer, MIXER_READ(mixer_index), &res) == -1)
+		throw std::runtime_error("Could not read volume.");
 
-	return S_ISDIR(directory.st_mode);
+	vol = res & 0x7f;
+
+	return true;
+}
+
+int
+Redfox::detect_mixer()
+{
+	if ((mixer = open("/dev/mixer0", O_RDONLY)) < 0)
+		throw std::runtime_error("Could not open mixer device.");
+
+	if (ioctl(mixer, SOUND_MIXER_READ_DEVMASK, &mixer_devmask) == -1)
+		throw std::runtime_error("Could not read mixer devmask.");
+
+	for (int i = 0; i < SOUND_MIXER_NRDEVICES; ++i) {
+		if (strcmp(vol_dev_names[i], "vol") == 0)
+			return i;
+	}
+
+	return -1;
+}
+
+bool
+Redfox::load_cpu_mem(double &cpu, long &mem)
+{
+	// These variables only belong to the memory calculation
+	long page_size_ = 0;
+	long mem_all_ = 0;
+	long mem_inactive_ = 0;
+	long mem_cache_ = 0;
+	long mem_free_ = 0;
+	long total_mem_ = 0;
+
+	// These variables only belong to the cpu load calculation
+	std::array<int, 20> cpu_load_ = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0 };
+	std::array<int, 4> cpu_res_ = { 0, 0, 0, 0 };
+	int total_cpu_ = 0;
+
+	size_t len_ = sizeof(mem_all_);
+	sysctlbyname("hw.physmem", &mem_all_, &len_, NULL, 0);
+	sysctlbyname("hw.pagesize", &page_size_, &len_, NULL, 0);
+	sysctlbyname(
+	    "vm.stats.vm.v_inactive_count", &mem_inactive_, &len_, NULL, 0);
+	sysctlbyname("vm.stats.vm.v_cache_count", &mem_cache_, &len_, NULL, 0);
+	sysctlbyname("vm.stats.vm.v_free_count", &mem_free_, &len_, NULL, 0);
+
+	len_ = sizeof(cpu_load_);
+	sysctlbyname("kern.cp_times", &cpu_load_, &len_, NULL, 0);
+
+	mem_inactive_ = mem_inactive_ * page_size_;
+	mem_cache_ = mem_cache_ * page_size_;
+	mem_free_ = mem_free_ * page_size_;
+
+	// We consinder inactive, cached and free memory as available memory.
+	total_mem_ = (mem_all_ - (mem_inactive_ + mem_cache_ + mem_free_));
+
+	for (int i = 0; i < 20; ++i)
+		total_cpu_ += cpu_load_[i];
+
+	for (int i = 0; i < 4; ++i)
+		cpu_res_[i] =
+		    ((cpu_load_[i] - cpu_load_old[i]) / total_cpu_) * 100;
+
+	cpu = cpu_res_[0];
+	mem = (total_mem_ / mem_all_) * 100;
+	cpu_load_old = cpu_load_;
+	return true;
 }
