@@ -51,16 +51,14 @@ main(const int argc, const char **argv)
 	parse_args(argc, argv);
 	Redfox red;
 	int load;
-	double cpu;
 	long vol, mem;
 	std::string date, ip("Wifi offline..."), state;
 
 	while (true) {
 		if (bcpu_mem) {
-			red.load_cpu_mem(cpu, mem);
+			red.load_cpu_mem(mem);
 			red.output.append(
-			    "  >  L: " + std::to_string(cpu).substr(0, 4) +
-			    " M: " + std::to_string(mem));
+			    " > M: " + std::to_string(mem) + "%");
 		}
 
 		if (bwifi) {

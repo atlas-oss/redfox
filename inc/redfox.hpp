@@ -21,8 +21,6 @@ class Redfox {
 	int mixer_index;
 	int mixer = 0;
 	int mixer_devmask = 0;
-	std::array<int, 20> cpu_load_old = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0 };
 
 	ifaddrs *if_addr = nullptr;
 	ifaddrs *ifa = nullptr;
@@ -53,6 +51,6 @@ class Redfox {
 	bool date(std::string &date) const;
 	bool wifi(std::string &ip);
 	bool battery(std::string &state, int &load);
-	bool load_cpu_mem(double &cpu, long &mem);
+	bool load_cpu_mem(long &mem);
 	bool volume(long &vol) const;
 };
