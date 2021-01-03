@@ -10,8 +10,4 @@ It can display the batterycharge, the IP and the date.
 	
 #### OS Specific
 
-You are under the FreeBSD branch. Currently I am moving to FreeBSD and trying to get my software run on it.
-I didn't test yet if this branch also runs on OpenBSD and NetBSD - I'll test it in the future.
-
-__Supported__: IP Address, Battery status and date
-__Not supported yet__: Volume, CPU/Mem usage
+You are under the OpenBSD branch.
