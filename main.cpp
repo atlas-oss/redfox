@@ -58,29 +58,29 @@ main(const int argc, const char **argv)
 		if (bcpu_mem) {
 			red.load_cpu_mem(mem);
 			red.output.append(
-			    " > M: " + std::to_string(mem) + "%");
+			    " " + std::to_string(mem) + "%");
 		}
 
 		if (bwifi) {
 			red.wifi(ip);
-			red.output.append("  >  " + ip);
+			red.output.append("      " + ip);
 		}
 
 		if (bvolume) {
 			red.volume(vol);
-			red.output.append("  >  " + std::to_string(vol) + "%");
+			red.output.append("      " + std::to_string(vol) + "%");
 		}
 
 		if (bbattery) {
 			red.battery(state, load);
-			red.output.append("  >  " + state + " " +
+			red.output.append("      " + state + " " +
 			    std::to_string(load).substr(0, 5) + "%");
 		}
 
 		if (bdate) {
 			red.date(date);
 			red.output.append(
-			    "  >  " + date.substr(0, (date.length()) - 1));
+			    "      " + date.substr(0, (date.length()) - 1));
 		}
 
 		XStoreName(red.dpy, red.root, red.output.c_str());
