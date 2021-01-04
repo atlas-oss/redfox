@@ -24,20 +24,33 @@
 
 // Date
 #include <sys/stat.h>
-
 #include <ctime>
 
 // Volume
+#if defined(__FreeBSD__)
 #include <sys/soundcard.h>
+#elif defined(__OpenBSD__)
+#include <sys/audioio.h>
+#include <sys/ioctl.h>
+#elif defined(__linux__)
+#include <alsa/asoundlib.h>
+#endif
 
 // CPU & MEM usage
 #include <sys/types.h>
-//#include <sys/sysinfo.h>
+#if defined(__linux__)
+#include <sys/sysinfo.h>
+#endif
 
 // System API
 #include <sys/sysctl.h>
 
+#if defined(__FreeBSD__)
 #include <dev/acpica/acpiio.h>
+#elif defined(__OpenBSD__)
+#include <sys/sensors.h>
+#include <sys/sysctl.h>
+#endif
 
 // Own
 #include "../inc/redfox.hpp"
@@ -84,6 +97,7 @@ Redfox::date(std::string &date) const
 	return true;
 }
 
+#if defined(__FreeBSD__)
 bool
 Redfox::battery(std::string &state, int &load)
 {
@@ -142,6 +156,174 @@ Redfox::battery(std::string &state, int &load)
 	return true;
 }
 
+#elif defined(__OpenBSD__)
+bool
+Redfox::detect_battery()
+{
+	struct sensordev sendev_ = {};
+	size_t len = sizeof(sendev_);
+
+	mib_[0] = CTL_HW;
+	mib_[1] = HW_SENSORS;
+
+	for (int i = 0; i < 10; ++i) {
+		mib_[2] = i;
+
+		if (sysctl(mib_, 3, &sendev_, &len, NULL, 0) == -1)
+			continue;
+
+		if (std::string(sendev_.xname).find("bat", 0) !=
+		    std::string::npos)
+			return true;
+	}
+
+	return false;
+}
+
+bool
+Redfox::battery(std::string &state, int &load)
+{
+	struct sensor sen_ = {};
+	int state_ = 0;
+	long current_ = 0, full_ = 0;
+	size_t len = 0;
+
+	mib_[3] = SENSOR_WATTHOUR;
+	mib_[4] = 0;
+
+	// Full Capacity
+	len = sizeof(sen_);
+	if (sysctl(mib_, 5, &sen_, &len, NULL, 0) == -1)
+		return false;
+
+	full_ = sen_.value;
+	sen_ = {};
+
+	// Current Capacity
+	mib_[4] = 3;
+	if (sysctl(mib_, 5, &sen_, &len, NULL, 0) == -1)
+		return false;
+
+	current_ = sen_.value;
+	sen_ = {};
+
+	// State
+	mib_[3] = SENSOR_INTEGER;
+	mib_[4] = 0;
+	if (sysctl(mib_, 5, &sen_, &len, NULL, 0) == -1)
+		return false;
+
+	state_ = sen_.value;
+	sen_ = {};
+
+	load = (int)(((double)current_ / (double)full_) * 100);
+
+	switch (state_) {
+	case 1:
+		switch (i_bat) {
+		case 0:
+			state = "Discharging.  ";
+			i_bat++;
+			break;
+		case 1:
+			state = "Discharging.. ";
+			i_bat++;
+			break;
+		case 2:
+			state = "Discharging...";
+			i_bat = 0;
+			break;
+		}
+		break;
+	case 2:
+		switch (i_bat) {
+		case 0:
+			state = "Charging.  ";
+			i_bat++;
+			break;
+		case 1:
+			state = "Charging.. ";
+			i_bat++;
+			break;
+		case 2:
+			state = "Charging...";
+			i_bat = 0;
+			break;
+		}
+		break;
+	case 0:
+		state = "Full";
+		break;
+	default:
+		state = "Unkown?";
+	}
+
+	return false;
+}
+#elif defined(__linux__)
+bool
+Redfox::collect_info(std::string &path) const
+{
+	for (auto i = path_list.begin(); i != path_list.end(); ++i) {
+		if (check_dir(*i)) {
+			path = *i;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool
+Redfox::check_dir(const std::string dir) const
+{
+	struct stat directory;
+
+	stat(dir.c_str(), &directory);
+
+	return S_ISDIR(directory.st_mode);
+}
+
+bool
+Redfox::battery(std::string &state, double &load) const
+{
+	std::ifstream state_f(battery_path + "status");
+
+	if (state_f.is_open())
+		state_f >> state;
+	else
+		state = "Unkown";
+
+	state_f.close();
+
+	std::ifstream e_full_f;
+	std::ifstream e_now_f;
+	double f = 0;
+	double n = 0;
+
+	for (auto i = now_list.begin(); i != now_list.end(); ++i) {
+		e_now_f.open(battery_path + *i);
+		if (e_now_f.is_open()) {
+			e_now_f >> n;
+			e_now_f.close();
+			break;
+		}
+	}
+	for (auto i = full_list.begin(); i != full_list.end(); ++i) {
+		e_full_f.open(battery_path + *i);
+		if (e_full_f.is_open()) {
+			e_full_f >> f;
+			e_full_f.close();
+			break;
+		}
+	}
+
+	load = (n / f) * 100;
+
+	return true;
+}
+#endif
+
+#if defined(__FreeBSD__)
 bool
 Redfox::volume(long &vol) const
 {
@@ -171,9 +353,82 @@ Redfox::detect_mixer()
 
 	return -1;
 }
-
+#elif defined(__OpenBSD__)
 bool
-Redfox::load_cpu_mem(long &mem)
+Redfox::volume(long &vol) const
+{
+// 	mixer_ctrl_t mixer = {};
+
+// 	FILE *fd = fopen("/dev/audioctl0", "r");
+// 	if (fd)
+// 		if (ioctl(fileno(fd), AUDIO_MIXER_READ, &mixer) < 0)
+// 			return false;
+
+// 	vol = 0;
+// 	std::cout << mixer.un.value.level << std::endl;
+
+// 	fclose(fd);
+// 	return true;
+	vol = 0;
+	return true;
+}
+#elif defined(__linux__)
+bool Redfox::volume(long &vol) const
+{
+	long minv, maxv;
+	snd_mixer_t *handle;
+	snd_mixer_elem_t *elem;
+	snd_mixer_selem_id_t *sid;
+
+	const std::string mix_name("Master");
+	const std::string card("pulse");
+	int mix_index = 0;
+
+	snd_mixer_selem_id_alloca(&sid);
+
+	snd_mixer_selem_id_set_index(sid, mix_index);
+	snd_mixer_selem_id_set_name(sid, mix_name.c_str());
+
+	if ((snd_mixer_open(&handle, 0)) < 0)
+		return false;
+
+	if ((snd_mixer_attach(handle, card.c_str())) >= 0) {
+		if ((snd_mixer_selem_register(handle, NULL, NULL)) >= 0)
+			if (snd_mixer_load(handle) >= 0) {
+				elem = snd_mixer_find_selem(handle, sid);
+				if (elem) {
+					snd_mixer_selem_get_playback_volume_range(
+						elem, &minv, &maxv);
+
+					if (snd_mixer_selem_get_playback_volume(
+						    elem,
+						    SND_MIXER_SCHN_FRONT_LEFT,
+						    &vol)
+					    >= 0) {
+						/* make the value bound to 100
+						 */
+						vol -= minv;
+						maxv -= minv;
+						minv = 0;
+						vol = 100 * vol
+						      / maxv; // make the value
+							      // bound from 0 to
+							      // 100
+						snd_mixer_close(handle);
+						return false;
+					}
+				}
+			}
+		snd_mixer_close(handle);
+	}
+
+	return true;
+}
+#endif
+
+#if defined(__FreeBSD__)
+bool
+Redfox::load_mem(long &mem)
 {
 	// These variables only belong to the memory calculation
 	long page_size_ = 0;
@@ -201,7 +456,35 @@ Redfox::load_cpu_mem(long &mem)
 	mem = ((double)total_mem_ / (double)mem_all_) * 100;
 	return true;
 }
+#elif defined(__OpenBSD__)
+bool
+Redfox::load_mem(long &mem)
+{
+	mem = 0;
+	return true;
+}
+#elif defined(__linux__)
+bool
+Redfox::load_mem(long &mem) const
+{
+  std::ifstream meminfo_stream("/proc/meminfo");
+  std::stringstream meminfo;
+  meminfo << meminfo_stream.rdbuf();
+  meminfo_stream.close();
+  std::string cached_string(meminfo.str().substr(meminfo.str().find("Cached:") + 15, 10));
 
+  cached_string.erase(std::remove_if(cached_string.begin(), cached_string.end(), isspace), cached_string.end());
+
+  long cached = std::stol(cached_string) * 1000;
+ 
+  mem = (((cpu_info.totalram - cpu_info.freeram - cached) * cpu_info.mem_unit) * 100) / cpu_info.totalram;
+  
+  return true;
+}
+
+#endif
+
+#if defined(FOUND_MU)
 int
 Redfox::mail() const
 {
@@ -222,3 +505,4 @@ Redfox::mail() const
 
 	return mails;
 }
+#endif

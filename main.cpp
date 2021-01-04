@@ -8,7 +8,7 @@ bool bdate = true, bwifi = true, bbattery = true, bcpu_mem = true, bmail = true,
 	bvolume = true, bedition = true;
 
 #define HELP \
-	" redfox v0.02\n USAGE: redfox [OPTION]\n -m - No memory and CPU usage\n -w - No IP address\n -b - No battery load\n -v - No volume indicator\n -d - No date\n -h - this message."
+	" redfox v0.02\n USAGE: redfox [OPTION]\n -e - No edition symbol\n -m - No mail integration\n -c - No CPU/MEM indicator\n -w - No IP address\n -b - No battery load\n -v - No volume indicator\n -d - No date\n -h - this message."
 
 bool
 parse_args(const int argc, const char **argv)
@@ -64,15 +64,23 @@ main(const int argc, const char **argv)
 
 	while (true) {
 		if(bedition) {
+#if defined(__FreeBSD__)
 			red.output.append("");
+#elif defined(__OpenBSD__)
+			// Sadly Font-Awesome doesn't provide puffy :( 
+#elif defined(__linux__)
+			red.output.append("");
+#endif
 		}
 
+#if defined(FOUND_MU)
 		if(bmail) {
 			red.output.append("      " + std::to_string(red.mail()));
 		}
-		
+#endif
+	      
 		if (bcpu_mem) {
-			red.load_cpu_mem(mem);
+			red.load_mem(mem);
 			red.output.append(
 			    "      " + std::to_string(mem) + "%");
 		}
