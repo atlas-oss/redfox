@@ -7,3 +7,7 @@ It can display the batterycharge, the IP and the date.
 
     make
 	./redfox &
+	
+#### OS Specific
+
+You are under the FreeBSD branch.
