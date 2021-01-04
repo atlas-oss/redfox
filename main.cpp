@@ -4,8 +4,8 @@
 // Own
 #include "inc/redfox.hpp"
 
-bool bdate = true, bwifi = true, bbattery = true, bcpu_mem = true,
-     bvolume = true;
+bool bdate = true, bwifi = true, bbattery = true, bcpu_mem = true, bmail = true,
+	bvolume = true, bedition = true;
 
 #define HELP \
 	" redfox v0.02\n USAGE: redfox [OPTION]\n -m - No memory and CPU usage\n -w - No IP address\n -b - No battery load\n -v - No volume indicator\n -d - No date\n -h - this message."
@@ -13,9 +13,17 @@ bool bdate = true, bwifi = true, bbattery = true, bcpu_mem = true,
 bool
 parse_args(const int argc, const char **argv)
 {
-	for (size_t i = 0; i < argc; ++i) {
+	for (int i = 0; i < argc; ++i) {
 		switch (argv[i][1]) {
+		case 'e': {
+			bedition = false;
+			break;
+		}
 		case 'm': {
+			bmail = false;
+			break;
+		}
+		case 'c': {
 			bcpu_mem = false;
 			break;
 		}
@@ -55,10 +63,18 @@ main(const int argc, const char **argv)
 	std::string date, ip("Wifi offline..."), state;
 
 	while (true) {
+		if(bedition) {
+			red.output.append("");
+		}
+
+		if(bmail) {
+			red.output.append("      " + std::to_string(red.mail()));
+		}
+		
 		if (bcpu_mem) {
 			red.load_cpu_mem(mem);
 			red.output.append(
-			    " " + std::to_string(mem) + "%");
+			    "      " + std::to_string(mem) + "%");
 		}
 
 		if (bwifi) {

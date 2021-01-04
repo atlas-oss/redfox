@@ -29,6 +29,8 @@ class Redfox {
 
 	const char *vol_dev_names[SOUND_MIXER_NRDEVICES] = SOUND_DEVICE_NAMES;
 
+	const std::string xapian_db;
+
 	int detect_mixer();
 
     public:
@@ -36,7 +38,7 @@ class Redfox {
 	Window root;
 	std::string output;
 
-	Redfox()
+	Redfox() : xapian_db(std::string(getenv("HOME")) + "/.mu/xapian/")
 	{
 		if (!(dpy = XOpenDisplay(nullptr))) {
 			std::cerr << "Could not open Display." << std::endl;
@@ -53,4 +55,5 @@ class Redfox {
 	bool battery(std::string &state, int &load);
 	bool load_cpu_mem(long &mem);
 	bool volume(long &vol) const;
+	int mail() const;
 };

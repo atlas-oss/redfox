@@ -5,7 +5,7 @@ SEC= -march=native -fstack-protector-all --param ssp-buffer-size=4 -fpie -ftrapv
 
 
 CFLAGS= ${WARN} ${SEC} -I/usr/local/include -std=c++14 -O2 -fomit-frame-pointer -funroll-loops
-LDFLAGS= -L/usr/local/lib/ -lX11 -Wl,-z,relro,-z,now -pie
+LDFLAGS= -L/usr/local/lib/ -lX11 -lxapian -Wl,-z,relro,-z,now -pie
 
 SRC= src/redfox.cpp main.cpp
 OBJECT= redfox.o main.o

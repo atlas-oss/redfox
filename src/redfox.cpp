@@ -19,6 +19,9 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 
+// Mail
+#include <xapian.h>
+
 // Date
 #include <sys/stat.h>
 
@@ -197,4 +200,25 @@ Redfox::load_cpu_mem(long &mem)
 
 	mem = ((double)total_mem_ / (double)mem_all_) * 100;
 	return true;
+}
+
+int
+Redfox::mail() const
+{
+	int mails = 0;
+	Xapian::Database db = Xapian::Database(xapian_db);
+	Xapian::QueryParser qparser;
+	Xapian::Enquire qenquire(db);
+
+	qparser.add_prefix("flag", "B");
+
+	// Maybe flag:new AND NOT flag:seen?
+	Xapian::Query query = qparser.parse_query("flag:unread");
+	qenquire.set_query(query);
+
+	Xapian::MSet hit = qenquire.get_mset(0, 10);
+
+	mails = hit.get_matches_estimated();
+
+	return mails;
 }
