@@ -493,10 +493,9 @@ Redfox::mail() const
 	Xapian::QueryParser qparser;
 	Xapian::Enquire qenquire(db);
 
-	qparser.add_prefix("flag", "B");
+	qparser.add_prefix("flag", "G");
 
-	// Maybe flag:new AND NOT flag:seen?
-	Xapian::Query query = qparser.parse_query("flag:unread");
+	Xapian::Query query = qparser.parse_query("flag:n AND NOT flag:s");
 	qenquire.set_query(query);
 
 	Xapian::MSet hit = qenquire.get_mset(0, 10);
