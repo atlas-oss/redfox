@@ -12,8 +12,10 @@
 #include <string>
 
 // Network
-#include <net/if.h>
+#if defined(__FreeBSD__)
 #include <net/if_dl.h>
+#endif
+#include <net/if.h>
 #include <netinet/in.h>
 
 #include <arpa/inet.h>
@@ -24,6 +26,7 @@
 
 // Date
 #include <sys/stat.h>
+
 #include <ctime>
 
 // Volume
@@ -43,9 +46,9 @@
 #endif
 
 // System API
+#if defined(__FreeBSD__)
 #include <sys/sysctl.h>
 
-#if defined(__FreeBSD__)
 #include <dev/acpica/acpiio.h>
 #elif defined(__OpenBSD__)
 #include <sys/sensors.h>
@@ -284,7 +287,7 @@ Redfox::check_dir(const std::string dir) const
 }
 
 bool
-Redfox::battery(std::string &state, double &load) const
+Redfox::battery(std::string &state, int &load)
 {
 	std::ifstream state_f(battery_path + "status");
 
@@ -357,23 +360,24 @@ Redfox::detect_mixer()
 bool
 Redfox::volume(long &vol) const
 {
-// 	mixer_ctrl_t mixer = {};
+	// 	mixer_ctrl_t mixer = {};
 
-// 	FILE *fd = fopen("/dev/audioctl0", "r");
-// 	if (fd)
-// 		if (ioctl(fileno(fd), AUDIO_MIXER_READ, &mixer) < 0)
-// 			return false;
+	// 	FILE *fd = fopen("/dev/audioctl0", "r");
+	// 	if (fd)
+	// 		if (ioctl(fileno(fd), AUDIO_MIXER_READ, &mixer) < 0)
+	// 			return false;
 
-// 	vol = 0;
-// 	std::cout << mixer.un.value.level << std::endl;
+	// 	vol = 0;
+	// 	std::cout << mixer.un.value.level << std::endl;
 
-// 	fclose(fd);
-// 	return true;
+	// 	fclose(fd);
+	// 	return true;
 	vol = 0;
 	return true;
 }
 #elif defined(__linux__)
-bool Redfox::volume(long &vol) const
+bool
+Redfox::volume(long &vol) const
 {
 	long minv, maxv;
 	snd_mixer_t *handle;
@@ -398,22 +402,20 @@ bool Redfox::volume(long &vol) const
 				elem = snd_mixer_find_selem(handle, sid);
 				if (elem) {
 					snd_mixer_selem_get_playback_volume_range(
-						elem, &minv, &maxv);
+					    elem, &minv, &maxv);
 
 					if (snd_mixer_selem_get_playback_volume(
-						    elem,
-						    SND_MIXER_SCHN_FRONT_LEFT,
-						    &vol)
-					    >= 0) {
+						elem, SND_MIXER_SCHN_FRONT_LEFT,
+						&vol) >= 0) {
 						/* make the value bound to 100
 						 */
 						vol -= minv;
 						maxv -= minv;
 						minv = 0;
-						vol = 100 * vol
-						      / maxv; // make the value
-							      // bound from 0 to
-							      // 100
+						vol = 100 * vol /
+						    maxv; // make the value
+							  // bound from 0 to
+							  // 100
 						snd_mixer_close(handle);
 						return false;
 					}
@@ -445,7 +447,7 @@ Redfox::load_mem(long &mem)
 	    "vm.stats.vm.v_inactive_count", &mem_inactive_, &len_, NULL, 0);
 	sysctlbyname("vm.stats.vm.v_cache_count", &mem_cache_, &len_, NULL, 0);
 	sysctlbyname("vm.stats.vm.v_free_count", &mem_free_, &len_, NULL, 0);
-	
+
 	mem_inactive_ = mem_inactive_ * page_size_;
 	mem_cache_ = mem_cache_ * page_size_;
 	mem_free_ = mem_free_ * page_size_;
@@ -467,19 +469,30 @@ Redfox::load_mem(long &mem)
 bool
 Redfox::load_mem(long &mem) const
 {
-  std::ifstream meminfo_stream("/proc/meminfo");
-  std::stringstream meminfo;
-  meminfo << meminfo_stream.rdbuf();
-  meminfo_stream.close();
-  std::string cached_string(meminfo.str().substr(meminfo.str().find("Cached:") + 15, 10));
+	struct sysinfo cpu_info;
 
-  cached_string.erase(std::remove_if(cached_string.begin(), cached_string.end(), isspace), cached_string.end());
+	if (-1 == sysinfo(&cpu_info))
+		return false;
 
-  long cached = std::stol(cached_string) * 1000;
- 
-  mem = (((cpu_info.totalram - cpu_info.freeram - cached) * cpu_info.mem_unit) * 100) / cpu_info.totalram;
-  
-  return true;
+	std::ifstream meminfo_stream("/proc/meminfo");
+	std::stringstream meminfo;
+	meminfo << meminfo_stream.rdbuf();
+	meminfo_stream.close();
+	std::string cached_string(
+	    meminfo.str().substr(meminfo.str().find("Cached:") + 15, 10));
+
+	cached_string.erase(
+	    std::remove_if(cached_string.begin(), cached_string.end(), isspace),
+	    cached_string.end());
+
+	long cached = std::stol(cached_string) * 1000;
+
+	mem = (((cpu_info.totalram - cpu_info.freeram - cached) *
+		   cpu_info.mem_unit) *
+		  100) /
+	    cpu_info.totalram;
+
+	return true;
 }
 
 #endif

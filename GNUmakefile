@@ -4,7 +4,7 @@ WARN= -Wall -Wextra -Wno-unused-parameter -Wno-deprecated-declarations -Wformat-
 SEC= -march=native -fstack-protector-all --param ssp-buffer-size=4 -fpie -ftrapv -D_FORTIFY_SOURCE=2
 
 CFLAGS= ${WARN} ${SEC} -I/usr/local/include -std=c++14 -O2 -fomit-frame-pointer -funroll-loops
-LDFLAGS= -L/usr/local/lib/ -lX11 -Wl,-z,relro,-z,now -pie
+LDFLAGS= -L/usr/local/lib/ -lX11 -lasound -Wl,-z,relro,-z,now -pie
 
 MU := $(shell which mu)
 
